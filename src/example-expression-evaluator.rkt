@@ -11,6 +11,9 @@
   (λ (x lst)
     (not (false? (member x lst)))))
 
+(define (efficient-in-list? x lst)
+  (ormap (λ (element) (equal? x element)) lst)
+)
 
 (define (eval expr)
   (cond

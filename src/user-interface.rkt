@@ -1,32 +1,49 @@
 #lang racket
 
+(require "./expression-evaluator.rkt")
+(require "./utils.rkt")
 (require data/either)
 
-
-;; renaming of the id function for the (data/either) either monad
-;; for my own convenience
-;; signature: (either) -> any/c
-(define (id either-monad) (from-either either-monad))
+(provide execution-loop)
 
 
-;; function that converts a string into a racket list
-;; signature: (string) -> either
-(define (input->list str) (read (open-input-string str)))
+;; function for use in the execution loop; keeps calling 'func' until user indicates
+;; they don't want to continue (reused from the parser program)
+;; signature: (func, [string]) -> (func) or void
+(define (continue? func state [message "Continue [y], Exit [any other key]"])
+    (printf "~n~a~n---~n   >>>" message)
+    (define input (string-trim (read-line)))
 
-(define (safe-input->list str)
-    (with-handlers 
-
-        ;; if the string passed to this function is not
-        ;; a valid racket list, return a failure
-        {[exn:fail? (lambda (e) 
-                            (failure "Error: invalid list structure"))
-        ]}
-
-        ;; otherwise, return a success w/ the
-        ;; pertainent value as the list representation of the string
-        {success (input->list str)}
+    (if [or (equal? input "Y")
+            (equal? input "y")]
+        (func state)
+        (begin
+            (printf "---~n")
+            'EXIT
+        ) 
     )
 )
 
-(safe-input->list "(hello world)")
-(safe-input->list "(hello")
+
+(define (execution-loop state)
+    (printf "~n---~nENTER EXPRESSION~n   >>>")
+    (define user-input (string-trim (read-line)))
+    (define expression (safe-input->list user-input))         ;; expression is an either monad
+    (define expression-and-state                              ;; either w/ bundled state and expr
+        (if
+            (success? expression)
+            (success (list (extract expression) state))
+            (failure (list (extract expression) state))
+        )
+    )
+    (define result-and-state (evaluate expression-and-state)) ;; either result or error message
+    (let
+        ([result (first (extract result-and-state))]
+         [new-state (second (extract result-and-state))]
+        )
+        (begin
+            (printf "~n---~n~a~n---~n" result)                 ;; print the result/error message
+            (continue? execution-loop new-state)               ;; ask the user if they want to cont
+        )
+    )
+)
