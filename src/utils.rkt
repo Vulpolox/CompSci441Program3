@@ -36,6 +36,6 @@
         ;; pertainent value as the list representation of the string
         {if (string-contains? str "(")
             (success (input->list str))
-            (failure (format "ERROR: Input Must Be a List~n   e.g. \"(sub (add (num 1) (num 2)) (num7)\""))}
+            (failure (format "ERROR: Input Must Be a List~n   e.g. \"(sub (add (num 1) (num 2)) (num 7)\""))}
     )
 )

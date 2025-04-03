@@ -15,7 +15,7 @@
 
     (cond
 
-        ;; === ERROR HANDLING ======================
+        ;; === ERROR BASE CASES ======================
 
         ;; if evaluate is called on an expression that
         ;; has already errored out, return itself
@@ -25,11 +25,6 @@
         ;; '(num id add sub mult div assign remove define)
         [(is-invalid? current-func) 
          (failure (list (format "ERROR: Not A Function -> ~a" current-func) state))
-        ]
-
-        ;; if evaluate is called on an empty expression
-        [(equal? current-func 'empty)
-         (failure (list "ERROR: Tried to Evaluate Empty Expression" state))
         ]
 
         ;; special check for whether the arity is correct if 'define is pulled
@@ -48,7 +43,9 @@
         ]
 
         ;; if the function is called with the incorrect amount of arguments
-        [(not (= correct-arity (length current-arguments)))
+        [(nor (= correct-arity (length current-arguments))
+              (equal? current-func 'define)
+         )  
          (failure (list (format "ERROR: Arity Mismatch for \'~a\': Got ~a Arguments, Expected ~a"
                                 current-func
                                 (length current-arguments)
@@ -79,18 +76,117 @@
 
         ;; === STATE ACCESSORS/MUTATORS ======================
 
-        ;; === BASE CASES ======================
+        ;; id function
+        [(is-id? current-func)
+            (let*
+                ([identifier (first current-arguments)]
+                 [value (hash-ref state identifier 'unbound)]
+                )
+                (cond
+                    [(number? identifier) 
+                     (failure (list (format "ERROR: ID Contract Violation: Expected (id <identifier>), Got (id ~a)" identifier) state))
+                    ]
+                    [(list? identifier) 
+                     (failure (list (format "ERROR: ID Contract Violation: Expected (id <identifier>), Got (id '~a)" identifier) state))
+                    ]
+                    [(not (char-alphabetic? (string-ref (symbol->string identifier) 0)))
+                     (failure (list (format "ERROR: ID Naming Convention Violated: First Char Not Alplhabetic -> '~a'" identifier) state))
+                    ]
+                    [(ormap id-naming-predicate (string->list (symbol->string identifier)))
+                     (failure (list (format "ERROR: ID Naming Convention Violated: ID Can Only Contain Alphanumeric Chars, '-', and '_' -> '~a'" identifier) state))
+                    ]
+                    [(equal? 'unbound value)
+                     (failure (list (format "ERROR: Unbound Identifier -> ~a" identifier) state))
+                    ]
+                    [(equal? 'undefined value)
+                     (failure (list (format "ERROR: Identifier Declared But Never Assigned a Value -> ~a = 'undefined" identifier) state))
+                    ]
+                    [else (success (list value state))]
+                )
+            )
+        ]
+
+        ;; assign function
+        [(is-assign? current-func)
+            (let*
+                ([identifier (first current-arguments)]
+                 [expr (evaluate (success (list (second current-arguments) state)))]
+                 [value (hash-ref state identifier 'unbound)]
+                )
+                (cond
+                    [(failure? expr) expr]
+                    [(number? identifier)
+                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected (assign <identifier>), Got (assign ~a)" identifier) state))
+                    ]
+                    [(list? identifier)
+                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected (assign <identifier>), Got (assign '~a)" identifier) state))
+                    ]
+                    [(is-procedure? identifier)
+                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected (assign <identifier>), Got (assign #<procedure:~a>)" identifier) state))
+                    ]
+                    [(equal? value 'unbound)
+                     (failure (list (format "ERROR: Tried to Assign to Unbound Identifier -> ~a" identifier) state))
+                    ]
+                    [else
+                     (success 
+                        (list 
+                            (format "~a -> ~a" (first (extract expr)) identifier) 
+                            (hash-set state identifier (first (extract expr)))
+                        )
+                     )
+                    ]
+                )
+            )
+        ]
+
+        ;; define function
+        [(is-define? current-func)
+            (let*
+                ([identifier (first current-arguments)]
+                 [expr (if (= 2 (length current-arguments))
+                           (evaluate (success (list (second current-arguments) state))) 
+                           'null
+                       )
+                 ]
+                )
+                (cond
+                    [(failure? expr) expr]
+                    [(number? identifier) 
+                     (failure (list (format "ERROR: DEFINE Contract Violation: Expected (assign <identifier> |expr|), Got (assign ~a |expr|)" identifier) state))
+                    ]
+                    [(list? identifier) 
+                     (failure (list (format "ERROR: DEFINE Contract Violation: Expected (assign <identifier> |expr|), Got (assign '~a |expr|)" identifier) state))
+                    ]
+                    [(not (char-alphabetic? (string-ref (symbol->string identifier) 0)))
+                     (failure (list (format "ERROR: ID Naming Convention Violated: First Char Not Alplhabetic -> '~a'" identifier) state))
+                    ]
+                    [(ormap id-naming-predicate (string->list (symbol->string identifier)))
+                     (failure (list (format "ERROR: ID Naming Convention Violated: ID Can Only Contain Alphanumeric Chars, '-', and '_' -> '~a'" identifier) state))
+                    ]
+                    [(hash-has-key? state identifier)
+                     (failure (list (format "ERROR: ID Already Defined -> ~a = ~a" identifier (hash-ref state identifier)) state))
+                    ]
+                    [(equal? expr 'null)
+                     (success (list (format "'undefined -> ~a" identifier) (hash-set state identifier 'undefined)))
+                    ]
+                    [(success? expr)
+                     (success (list 
+                                (format "~a -> ~a" (first (from-either expr)) identifier)
+                                (hash-set state identifier (first (from-either expr)))
+                              )
+                     )
+                    ]
+                )
+            )
+        ]
+
+        ;; remove function
+
+
+        ;; === OTHER BASE CASE ======================
 
         [(is-num? current-func)
          (num (first current-arguments) state)
-        ;  (let 
-        ;     ([result (num (first current-arguments))])
-        ;     (if
-        ;         (success? result)
-        ;         (success (list (extract result) state))
-        ;         (failure (list (extract result) state))
-        ;     )
-        ;  )
         ]
     )
 )
@@ -108,4 +204,17 @@
 
 (define (modified-cdr x)
     (if (list? x) (cdr x) '())
+)
+
+(define (is-procedure? x)
+    (list-contains? (list 'num 'id 'add 'sub 'div 'mult 'assign 'define 'remove) x)
+)
+
+(define (id-naming-predicate chr)
+    (nor
+        (char-numeric? chr)
+        (char-alphabetic? chr)
+        (equal? #\_ chr)
+        (equal? #\- chr)
+    )
 )

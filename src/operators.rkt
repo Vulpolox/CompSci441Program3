@@ -13,11 +13,11 @@
 (define (is-define? symbol) (equal? symbol 'define))
 (define (is-remove? symbol) (equal? symbol 'remove))
 (define (is-invalid? symbol) 
-        (if
-            (not (symbol? symbol))
-            #t
-            (not (or (is-id? symbol) (is-num? symbol) (is-op? symbol) (is-state-modifier? symbol)))
-        )
+    (if
+        (not (symbol? symbol))
+        #t
+        (not (or (is-id? symbol) (is-num? symbol) (is-op? symbol) (is-state-modifier? symbol)))
+    )
         
 )
 
@@ -73,10 +73,13 @@
 
 
 (define (id state i)
-    (if
-        (hash-has-key? state i)
-        (success (hash-ref state i))
-        (failure (format "ERROR: Unbound Identifier -> ~a" i))
+    (cond
+        [(hash-has-key? state i)
+         (success (list (hash-ref state i) state))
+        ]
+        [else 
+         (failure (list (format "ERROR: Unbound Identifier -> ~a" i) state))
+        ]
     )
 )
 
