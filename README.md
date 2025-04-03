@@ -8,15 +8,15 @@ This program can:
 - read and evaluate expressions from user input
 - access, define, assign, and free data to/from variables
 ## Allowed Operations
-1. (`num` \<**number**\>) → returns the **number** passed to it
-2. (`id` \<**identifier**\>) → returns the **number** stored in **identifier**; **identifier** must already be declared using `define`
-3. (`add` \<**expresion**\> \<**expression**\>) → adds two expressions; expressions must resolve to **number**
-4. (`sub` \<**expression**\> \<**expression**\>) → subtacts two expressions; expressions must resolve to **number**
-5. (`mult` \<**expression**\> \<**expression**\>) → multiplies two expressions; expressions must resolve to **number**
-6. (`div` \<**expression**\> \<**expression**\>) → divides two expressions; expressions must resolve to **number**
-7. (`define` \<**identifier**\> [**expression**]) → declares and initializes **identifier** to the **number** that **expression** resolves to; if **expression** isn't given, declares and initializes **identifier** to **'undefined** instead
-8. (`assign` \<**identifier**\> \<**expression**\>) → assigns the **number** that **expression** resolves to to the **identifier**; **identifier** must already be declared using `define`
-9. (`remove` \<**identifier**\>) → frees **identifier**; **identifier** must already be declared using `define`
+1. (`num` \<***number***\>) → returns the ***number*** passed to it
+2. (`id` \<***identifier***\>) → returns the ***number*** stored in ***identifier***; ***identifier*** must already be declared using `define`
+3. (`add` \<***expresion***\> \<***expression***\>) → adds two expressions; expressions must resolve to ***number***
+4. (`sub` \<***expression***\> \<***expression***\>) → subtacts two expressions; expressions must resolve to ***number***
+5. (`mult` \<***expression***\> \<***expression***\>) → multiplies two expressions; expressions must resolve to ***number***
+6. (`div` \<***expression***\> \<***expression***\>) → divides two expressions; expressions must resolve to ***number***
+7. (`define` \<***identifier***\> [***expression***]) → declares and initializes ***identifier*** to the ***number*** that ***expression*** resolves to; if ***expression*** isn't given, declares and initializes ***identifier*** to ***'undefined*** instead
+8. (`assign` \<***identifier***\> \<***expression***\>) → assigns the ***number*** that ***expression*** resolves to to the ***identifier***; ***identifier*** must already be declared using `define`
+9. (`remove` \<***identifier***\>) → frees ***identifier***; ***identifier*** must already be declared using `define`
 ## Example Expressions
 - `(add (num 1) (num 2))` → returns `3`
 - `(add (sub (num 5) (num 2)) (num 7))` → returns `10`
