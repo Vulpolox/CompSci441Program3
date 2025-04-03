@@ -24,6 +24,8 @@
 
 
 (define (safe-input->list str)
+    ;; user can include an optional apostrophe preceeding their input list
+    (define mod-str (if (equal? #\' (string-ref str 0)) (first (string-split str "'")) str))
     (with-handlers 
 
         ;; if the string passed to this function is not
@@ -34,8 +36,8 @@
 
         ;; otherwise, return a success w/ the
         ;; pertainent value as the list representation of the string
-        {if (string-contains? str "(")
-            (success (input->list str))
+        {if (string-contains? mod-str "(")
+            (success (input->list mod-str))
             (failure (format "ERROR: Input Must Be a List~n   e.g. \"(sub (add (num 1) (num 2)) (num 7)\""))}
     )
 )
