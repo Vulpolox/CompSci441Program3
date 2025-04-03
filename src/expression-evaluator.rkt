@@ -24,7 +24,7 @@
         ;; if the function pulled from the expression is not in
         ;; '(num id add sub mult div assign remove define)
         [(is-invalid? current-func) 
-         (failure (list (format "ERROR: Not A Function -> ~a" current-func) state))
+         (failure (list (format "ERROR: Unrecognized Operation -> ~a" current-func) state))
         ]
 
         ;; special check for whether the arity is correct if 'define is pulled
@@ -84,10 +84,13 @@
                 )
                 (cond
                     [(number? identifier) 
-                     (failure (list (format "ERROR: ID Contract Violation: Expected (id <identifier>), Got (id ~a)" identifier) state))
+                     (failure (list (format "ERROR: ID Contract Violation: Expected identifier?, Got ~a" identifier) state))
                     ]
                     [(list? identifier) 
-                     (failure (list (format "ERROR: ID Contract Violation: Expected (id <identifier>), Got (id '~a)" identifier) state))
+                     (failure (list (format "ERROR: ID Contract Violation: Expected identifier?, Got '~a" identifier) state))
+                    ]
+                    [(is-procedure? identifier)
+                     (failure (list (format "ERROR: ID Contract Violation: Expected identifier?, Got #<procedure:~a>" identifier) state))
                     ]
                     [(not (char-alphabetic? (string-ref (symbol->string identifier) 0)))
                      (failure (list (format "ERROR: ID Naming Convention Violated: First Char Not Alplhabetic -> '~a'" identifier) state))
@@ -96,10 +99,10 @@
                      (failure (list (format "ERROR: ID Naming Convention Violated: ID Can Only Contain Alphanumeric Chars, '-', and '_' -> '~a'" identifier) state))
                     ]
                     [(equal? 'unbound value)
-                     (failure (list (format "ERROR: Unbound Identifier -> ~a" identifier) state))
+                     (failure (list (format "ERROR: Tried Accessing Unbound Identifier -> ~a" identifier) state))
                     ]
                     [(equal? 'undefined value)
-                     (failure (list (format "ERROR: Identifier Declared But Never Assigned a Value -> ~a = 'undefined" identifier) state))
+                     (failure (list (format "ERROR: Identifier Accessed Before Being Assigned a Value -> ~a = 'undefined" identifier) state))
                     ]
                     [else (success (list value state))]
                 )
@@ -116,13 +119,13 @@
                 (cond
                     [(failure? expr) expr]
                     [(number? identifier)
-                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected (assign <identifier>), Got (assign ~a)" identifier) state))
+                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected identifier?, Got ~a" identifier) state))
                     ]
                     [(list? identifier)
-                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected (assign <identifier>), Got (assign '~a)" identifier) state))
+                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected identifier?, Got '~a" identifier) state))
                     ]
                     [(is-procedure? identifier)
-                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected (assign <identifier>), Got (assign #<procedure:~a>)" identifier) state))
+                     (failure (list (format "ERROR: ASSIGN Contract Violation: Expected identifier?, Got #<procedure:~a>" identifier) state))
                     ]
                     [(equal? value 'unbound)
                      (failure (list (format "ERROR: Tried to Assign to Unbound Identifier -> ~a" identifier) state))
@@ -152,10 +155,13 @@
                 (cond
                     [(failure? expr) expr]
                     [(number? identifier) 
-                     (failure (list (format "ERROR: DEFINE Contract Violation: Expected (assign <identifier> |expr|), Got (assign ~a |expr|)" identifier) state))
+                     (failure (list (format "ERROR: DEFINE Contract Violation: Expected identifier?, Got ~a" identifier) state))
                     ]
                     [(list? identifier) 
-                     (failure (list (format "ERROR: DEFINE Contract Violation: Expected (assign <identifier> |expr|), Got (assign '~a |expr|)" identifier) state))
+                     (failure (list (format "ERROR: DEFINE Contract Violation: Expected identifier?, Got '~a" identifier) state))
+                    ]
+                    [(is-procedure? identifier)
+                     (failure (list (format "ERROR: DEFINE Contract Violation: Expected identifier, Got #<procedure:~a>" identifier) state))
                     ]
                     [(not (char-alphabetic? (string-ref (symbol->string identifier) 0)))
                      (failure (list (format "ERROR: ID Naming Convention Violated: First Char Not Alplhabetic -> '~a'" identifier) state))
@@ -181,6 +187,28 @@
         ]
 
         ;; remove function
+        [(is-remove? current-func)
+            (let*
+                ([identifier (first current-arguments)]
+                 [value (hash-ref state identifier 'unbound)]
+                )
+                (cond
+                    [(number? identifier) 
+                     (failure (list (format "ERROR: REMOVE Contract Violation: Expected identifier?, Got ~a" identifier) state))
+                    ]
+                    [(list? identifier) 
+                     (failure (list (format "ERROR: REMOVE Contract Violation: Expected identifier?, Got '~a" identifier) state))
+                    ]
+                    [(is-procedure? identifier)
+                     (failure (list (format "ERROR: REMOVE Contract Violation: Expected identifier?, Got #<procedure:~a>" identifier) state))
+                    ]
+                    [(equal? value 'unbound)
+                     (failure (list (format "ERROR: Tried to Remove Unbound Identifier -> ~a" identifier) state))
+                    ]
+                    [else (success (list (format "REMOVED ~a" identifier) (hash-remove state identifier)))]
+                )
+            )
+        ]
 
 
         ;; === OTHER BASE CASE ======================
