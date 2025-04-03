@@ -42,7 +42,7 @@
          (failure (list (format "ERROR: Arity Mismatch for \'define\': Got ~a Arguments, Expected 1 or 2"
                                 (length current-arguments)
                         ) 
-                    state
+                        state
                   )
          )
         ]
@@ -54,7 +54,7 @@
                                 (length current-arguments)
                                 correct-arity
                         )
-                    state
+                        state
                   )
          ) 
         ]
