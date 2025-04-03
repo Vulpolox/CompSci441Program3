@@ -10,12 +10,12 @@
 ;; function for use in the execution loop; keeps calling 'func' until user indicates
 ;; they don't want to continue (reused from the parser program)
 ;; signature: (func, [string]) -> (func) or void
-(define (continue? func state [message "Continue [y], Exit [any other key]"])
+(define (continue? func state [message "Continue [any key], Exit [e]"])
     (printf "~n~a~n---~n   >>>" message)
     (define input (string-trim (read-line)))
 
-    (if [or (equal? input "Y")
-            (equal? input "y")]
+    (if [nor (equal? input "e")
+             (equal? input "E")]
         (func state)
         (begin
             (printf "---~n")
