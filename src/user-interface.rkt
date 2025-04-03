@@ -42,7 +42,7 @@
          [new-state (second (extract result-and-state))]
         )
         (begin
-            (printf "~n---~n~a~n---~n" result)                 ;; print the result/error message
+            (printf "~n---~n   ~a~n---~n" result)              ;; print the result/error message
             (continue? execution-loop new-state)               ;; ask the user if they want to cont
         )
     )
