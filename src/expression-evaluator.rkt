@@ -19,7 +19,7 @@
 
         ;; if evaluate is called on an expression that
         ;; has already errored out, return itself
-        [(failure? expr-and-state) (identity (expr-and-state))]
+        [(failure? expr-and-state) (identity expr-and-state)]
 
         ;; if the function pulled from the expression is not in
         ;; '(num id add sub mult div assign remove define)
