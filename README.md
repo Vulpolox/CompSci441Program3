@@ -34,7 +34,7 @@ This program can:
 # How to Run Code
 1. Clone this repository
 2. In the terminal:
-  1.  `cd <path-to-repository>`
-  2.  `raco pkg install functional-lib`
-  3.  `racket main.rkt`
+  (a)  `cd <path-to-repository>`
+  (b)  `raco pkg install functional-lib`
+  (c)  `racket main.rkt`
 3. The program should now be running
